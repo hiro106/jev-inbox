@@ -2528,3 +2528,23 @@ main {
     scroll-behavior: auto !important;
   }
 }
+
+@media (max-width: 760px) {
+  .page-heading {
+    display: block;
+    position: relative;
+    padding-bottom: 56px;
+  }
+  .page-heading h1 {
+    white-space: nowrap;
+  }
+  .page-heading p {
+    max-width: none;
+  }
+  .page-heading > .button {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin: 0;
+  }
+}

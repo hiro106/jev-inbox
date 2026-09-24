@@ -1416,7 +1416,22 @@ function TicketDetail({
             </h3>
             {d && <SourceBadge decision={d} />}
           </div>
-          {!d ? (
+          {!d && ticket.review ? (
+            <div className="confirmed-note">
+              <CheckCheck size={17} />
+              <div>
+                <strong>人が仕分けを確定しました。</strong>
+                <span>
+                  {categoryLabels[ticket.review.category]} · 優先度{' '}
+                  {priorityLabels[ticket.review.priority]}
+                  <br />
+                  {ticket.review.needsReply ? '返信が必要' : '返信は不要'}
+                  <br />
+                  担当：{categoryTeams[ticket.review.category]}
+                </span>
+              </div>
+            </div>
+          ) : !d ? (
             <div className="no-decision">
               <span>
                 <Sparkles size={27} />

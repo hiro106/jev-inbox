@@ -65,6 +65,19 @@ test('batch processes unclassified tickets without making live calls', async ({ 
   await expect(page.getByRole('button', { name: '未仕分けを一括仕分け' })).toBeDisabled();
 });
 
+test('can classify manually without mislabeling the result as an AI decision', async ({ page }) => {
+  await closeDetail(page);
+  await page.getByRole('button', { name: /パスワードの再設定メールが届きません、/ }).click();
+  const detail = page.getByRole('complementary', { name: '問い合わせの詳細' });
+  await detail.getByRole('button', { name: '確認・修正' }).click();
+  await detail.getByRole('combobox', { name: '分類', exact: true }).selectOption('account');
+  await detail.getByRole('button', { name: '確認して確定' }).click();
+  await expect(detail.getByText('人が仕分けを確定しました。')).toBeVisible();
+  await expect(detail.getByText('この声は、まだ仕分け前です。')).toHaveCount(0);
+  await expect(detail.getByRole('button', { name: 'デモで仕分ける', exact: true })).toHaveCount(0);
+  await expect(detail.getByRole('button', { name: '対応済みに', exact: true })).toBeEnabled();
+});
+
 test('changes the review threshold and never persists an API key', async ({ page }) => {
   await closeDetail(page);
   await page.getByRole('button', { name: 'ルールと接続' }).click();
@@ -100,13 +113,11 @@ test('exports a restorable backup and skips duplicate IDs on import', async ({ p
 
 test('rejects an invalid backup and preserves current data', async ({ page }) => {
   await closeDetail(page);
-  await page
-    .getByLabel('JSONファイルを選択')
-    .setInputFiles({
-      name: 'bad.json',
-      mimeType: 'application/json',
-      buffer: Buffer.from('{"version":9,"tickets":[]}'),
-    });
+  await page.getByLabel('JSONファイルを選択').setInputFiles({
+    name: 'bad.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"version":9,"tickets":[]}'),
+  });
   await expect(page.getByRole('alert')).toContainText('現在のデータは変更していません');
   await expect(page.locator('.ticket-row')).toHaveCount(8);
 });
@@ -153,6 +164,10 @@ test('lays out without horizontal overflow and captures the interface', async ({
     () => document.documentElement.scrollWidth > window.innerWidth,
   );
   expect(hasOverflow).toBe(false);
+  const heading = await page
+    .getByRole('heading', { name: '受信トレイ', exact: true })
+    .boundingBox();
+  expect(heading?.height).toBeLessThan(50);
   await page.screenshot({ path: testInfo.outputPath('workspace.png'), fullPage: true });
   await page.getByRole('button', { name: /今月の請求が二重/ }).click();
   await page.screenshot({ path: testInfo.outputPath('detail.png'), fullPage: true });
